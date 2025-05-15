@@ -1,3 +1,4 @@
+import json
 import socket
 import threading
 import time
@@ -16,7 +17,7 @@ def read(conn, addr):
 def write(conn, addr):
     try:
         while True:
-            conn.send("oh you sent something thx".encode())
+            conn.send(json.dumps({ "cmd": 'ACCOUNT' }).encode())
             time.sleep(3)
     except ConnectionError:
         print("[INFO]\twrite lost connection to ", addr)
@@ -36,5 +37,4 @@ while True:
     thread_write = threading.Thread(target=write, args=(connection, address))
     thread_write.start()
 
-#   connection.close()
-#   server.close()
+    time.sleep(1)
