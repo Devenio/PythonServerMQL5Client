@@ -2,6 +2,7 @@
 #include <Trade/Trade.mqh>
 #include <JAson.mqh>
 
+// --add-host=host.docker.internal:host-gateway (in linux or --network host)
 #define SERVER_IP_ADDRESS "127.0.0.1"
 #define SERVER_PORT 8888
 
@@ -12,7 +13,7 @@
 #define STATUS_ERROR         -1
 #define STATUS_RECONNECTING  -2
 
-// Global variables
+// Global variables  
 SOCKET64 client = INVALID_SOCKET64;
 int expertStatus = STATUS_DISCONNECTED;
 datetime lastConnectionAttempt = 0;

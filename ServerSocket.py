@@ -8,33 +8,48 @@ def read(conn, addr):
     try:
         while True:
             msg = conn.recv(1024).decode()
-            if msg != "":
-                print("[INFO]\tMessage:", msg)
-    except ConnectionError:
-        print("[INFO]\tread lost connection to ", addr)
+            if msg:
+                print(f"[INFO] Message from {addr}: {msg}")
+            else:
+                break
+    except Exception as e:
+        print(f"[ERROR] read from {addr} -> {e}")
+    finally:
+        conn.close()
+        print(f"[INFO] Connection closed with {addr}")
 
 
 def write(conn, addr):
     try:
         while True:
-            conn.send(json.dumps({ "cmd": 'ACCOUNT' }).encode())
+            payload = { "cmd": "ACCOUNT" }
+            conn.send(json.dumps(payload).encode())
             time.sleep(3)
-    except ConnectionError:
-        print("[INFO]\twrite lost connection to ", addr)
+    except Exception as e:
+        print(f"[ERROR] write to {addr} -> {e}")
+    finally:
+        conn.close()
 
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(("127.0.0.1", 8888))
-server.listen(10)
+def start_server():
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind(("0.0.0.0", 8888))  # accessible from Docker
+    server.listen(10)
+    print("[INFO] Server is listening on port 8888", server.getsockname())
 
-while True:
-    connection, address = server.accept()
-    print("[INFO]\tConnection established with: ", address)
+    while True:
+        conn, addr = server.accept()
+        print(f"[INFO] Connection established with {addr}")
 
-    thread_read = threading.Thread(target=read, args=(connection, address))
-    thread_read.start()
+        thread_r = threading.Thread(target=read, args=(conn, addr))
+        thread_w = threading.Thread(target=write, args=(conn, addr))
 
-    thread_write = threading.Thread(target=write, args=(connection, address))
-    thread_write.start()
+        thread_r.daemon = True
+        thread_w.daemon = True
 
-    time.sleep(1)
+        thread_r.start()
+        thread_w.start()
+
+
+if __name__ == "__main__":
+    start_server()
